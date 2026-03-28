@@ -46,7 +46,7 @@ Everything stays on your machine. Your data never leaves.
 
 ```bash
 # 1. Clone
-git clone https://github.com/YOUR_USERNAME/ApplyCopilot.git
+git clone https://github.com/Uni-coder-harsh/ApplyCopilot.git
 cd ApplyCopilot
 
 # 2. Run setup (installs deps + pulls AI models)
