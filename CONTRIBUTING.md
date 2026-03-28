@@ -1,6 +1,6 @@
 # Contributing to ApplyCopilot
 
-Thanks for your interest in contributing. This is a open-source project — contributions are welcome but must meet the bar set below.
+Thanks for your interest in contributing. This is a serious open-source project — contributions are welcome but must meet the bar set below.
 
 ---
 

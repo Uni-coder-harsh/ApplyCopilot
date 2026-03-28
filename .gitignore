@@ -47,3 +47,4 @@ db/migrations/__pycache__/
 # Logs
 *.log
 logs/
+.secret

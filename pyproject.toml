@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name = "applycopilot"
@@ -9,7 +9,7 @@ description = "Local-first AI-powered job & research internship tracker"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.13"
-authors = [{ name = "Harsh", email = "harsh06264@gmail.com" }]
+authors = [{ name = "Your Name", email = "you@example.com" }]
 
 dependencies = [
     # Web framework

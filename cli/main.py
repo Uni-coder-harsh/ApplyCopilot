@@ -10,7 +10,7 @@ from cli.commands import init, sync, jobs, resume, followups
 
 app = typer.Typer(
     name="applycopilot",
-    help=" Local-first AI for job & internship tracker",
+    help="🚀 Local-first AI job & internship tracker",
     add_completion=False,
     rich_markup_mode="rich",
 )
