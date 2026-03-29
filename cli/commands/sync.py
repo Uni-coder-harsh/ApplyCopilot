@@ -25,9 +25,10 @@ def sync(ctx: typer.Context):
 def _run_sync():
     from db.session import db_session
     from db.models import User, EmailAccount
-
-    # Check Ollama is running
     from ai.client import ollama_client
+    from config.settings import settings
+
+    # ── Check Ollama ───────────────────────────────────────────────────────────
     if not ollama_client.is_available():
         console.print(
             "[red]✗ Ollama is not running.[/red]\n"
@@ -36,7 +37,6 @@ def _run_sync():
         raise typer.Exit(1)
 
     available_models = ollama_client.list_models()
-    from config.settings import settings
     for model in [settings.model_classifier, settings.model_reasoner]:
         model_name = model.split(":")[0]
         if not any(model_name in m for m in available_models):
@@ -48,6 +48,10 @@ def _run_sync():
             else:
                 console.print("[red]✗ Cannot proceed without required models.[/red]")
                 raise typer.Exit(1)
+
+    # ── Step 1: resolve account — open session then CLOSE it ──────────────────
+    # We only save account_id (a plain int) so no ORM object crosses sessions.
+    account_id = None
 
     with db_session() as db:
         user = db.query(User).first()
@@ -69,23 +73,27 @@ def _run_sync():
             action = "add"
 
         if action == "add":
-            account = _add_email_account(db, user)
-            if not account:
+            account_id = _add_email_account(db, user)
+            if not account_id:
                 return
         else:
             if len(accounts) == 1:
-                account = accounts[0]
+                account_id = accounts[0].id
             else:
                 choices = {str(i + 1): acc for i, acc in enumerate(accounts)}
                 for k, acc in choices.items():
                     console.print(f"  [{k}] {acc.email}")
                 choice = Prompt.ask("Select account", choices=list(choices.keys()))
-                account = choices[choice]
+                account_id = choices[choice].id
+    # ── outer session closes here — SQLite write lock released ─────────────────
 
-        _do_sync(db, account)
+    # ── Step 2: run sync in a completely fresh session ─────────────────────────
+    with db_session() as sync_db:
+        _do_sync(sync_db, account_id)
 
 
-def _add_email_account(db, user):
+def _add_email_account(db, user) -> int | None:
+    """Add a new email account. Returns the saved account_id or None on failure."""
     from db.models import EmailAccount
     from core.email.imap_adapter import IMAPAdapter
 
@@ -127,14 +135,21 @@ def _add_email_account(db, user):
         active=True,
     )
     db.add(account)
-    db.flush()
+    db.commit()
     console.print(f"  [green]✓ Account {email_addr} saved[/green]\n")
-    return account
+    return account.id
 
 
-def _do_sync(db, account):
+def _do_sync(db, account_id: int):
     from core.email.imap_adapter import IMAPAdapter
     from core.email.sync import run_sync
+    from db.models import EmailAccount
+
+    # Load account details fresh in this session
+    account = db.query(EmailAccount).filter(EmailAccount.id == account_id).first()
+    if not account:
+        console.print("[red]✗ Account not found.[/red]")
+        raise typer.Exit(1)
 
     password = _decrypt_password(account.token_encrypted)
     adapter = IMAPAdapter(
@@ -169,9 +184,12 @@ def _do_sync(db, account):
 
         try:
             with adapter:
-                result = run_sync(db, account, adapter, progress_callback=_progress)
+                # Pass account_id (int), not the ORM object
+                result = run_sync(db, account_id, adapter, progress_callback=_progress)
         except Exception as e:
             console.print(f"\n[red]✗ Sync failed: {e}[/red]")
+            import traceback
+            traceback.print_exc()
             raise typer.Exit(1)
 
         progress.update(task, completed=100, total=100, description="[green]Done[/green]")
@@ -195,7 +213,8 @@ def _do_sync(db, account):
 
 
 def _encrypt_password(password: str) -> str:
-    import base64, hashlib
+    import base64
+    import hashlib
     from cryptography.fernet import Fernet
     from config.settings import settings
     key = base64.urlsafe_b64encode(hashlib.sha256(settings.secret_key.encode()).digest())
@@ -203,7 +222,8 @@ def _encrypt_password(password: str) -> str:
 
 
 def _decrypt_password(encrypted: str) -> str:
-    import base64, hashlib
+    import base64
+    import hashlib
     from cryptography.fernet import Fernet
     from config.settings import settings
     key = base64.urlsafe_b64encode(hashlib.sha256(settings.secret_key.encode()).digest())
