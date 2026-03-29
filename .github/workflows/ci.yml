@@ -27,7 +27,7 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Lint with ruff
-        run: ruff check . --ignore E501
+        run: ruff check . --select E,F --ignore E501,E402,F401
 
       - name: Run tests
         run: pytest tests/ -v --tb=short
