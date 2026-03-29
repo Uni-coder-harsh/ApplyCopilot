@@ -51,7 +51,7 @@ def persist_emails(
     Commits immediately so IDs are stable.
     """
     job_count = 0
-    saved_ids = []
+
 
     for pe in parsed_emails:
         clf = classification_results.get(pe.message_id)
@@ -86,7 +86,7 @@ def persist_emails(
         db.query(Email.id, Email.subject, Email.body, Email.category, Email.timestamp)
         .filter(
             Email.account_id == account_id,
-            Email.is_job_related == True,
+            Email.is_job_related.is_(True),
         )
         .order_by(Email.id.desc())
         .limit(len(parsed_emails))
