@@ -69,7 +69,7 @@ def _show_followups():
 
     # ── Upcoming ───────────────────────────────────────────────────────────────
     if upcoming:
-        console.print(f"\n[bold]Upcoming follow-ups (next 7 days)[/bold]\n")
+        console.print("\n[bold]Upcoming follow-ups (next 7 days)[/bold]\n")
         table2 = Table(box=box.SIMPLE_HEAD, header_style="bold", padding=(0, 1))
         table2.add_column("ID", style="dim", width=4, justify="right")
         table2.add_column("Company", min_width=18)

@@ -103,7 +103,7 @@ def update_application(
 
         if notes:
             update_notes(db, app_id, notes)
-            console.print(f"  [green]✓[/green] Notes updated")
+            console.print("  [green]✓[/green] Notes updated")
             changed = True
 
         if priority is not None:
