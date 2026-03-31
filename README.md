@@ -120,9 +120,9 @@ mypy .
 ## Roadmap
 
 - [x] Phase 1 — Scaffold, DB, Auth, CLI init
-- [ ] Phase 2 — Email sync + AI classification
-- [ ] Phase 3 — Application tracker + follow-ups
-- [ ] Phase 4 — Resume generator (DOCX)
+- [x] Phase 2 — Email sync + AI classification
+- [x] Phase 3 — Application tracker + follow-ups
+- [x] Phase 4 — Resume generator (DOCX)
 - [ ] Phase 5 — AI match scoring + skill inferrer
 - [ ] Phase 6 — Local web dashboard
 - [ ] Phase 7 — Gmail OAuth adapter
